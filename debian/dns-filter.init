@@ -17,7 +17,7 @@
 # Version:	@(#)skeleton  1.9  26-Feb-2001  miquels@cistron.nl
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/bin/twistd
+DAEMON=/usr/bin/python
 PID=/var/run/dns-filter.pid
 NAME=dns-filter
 DESC=dns-filter
