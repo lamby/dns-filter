@@ -35,19 +35,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# DNS server to get results from
-master = '192.168.0.1'
-
-# Invalid 'A' record IP addresses. The program will return "no such
-# domain" if one of these addresses is offered.
-invalid = ('195.238.237.142', '195.238.237.143')
-
 from twisted.application import service, internet
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
 from twisted.names import client, server, dns, error
 from twisted.python import failure
+import ConfigParser
 import sys
+
+try:
+    config = ConfigParser.ConfigParser()
+    config.read(('dns-filter.conf', '/etc/dns-filter.conf'))
+    master = config.get('dns-filter', 'master')
+    invalid = [x.strip() for x in config.get('dns-filter', 'invalid').split(",")]
+except ConfigParser.NoSectionError:
+    print "Configuration error"
+    sys.exit(-1)
 
 class MyResolver(client.Resolver):
     def filterAnswers(self, message):
