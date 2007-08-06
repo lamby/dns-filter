@@ -1,0 +1,20 @@
+Source: dns-filter
+Section: net
+Priority: extra
+Maintainer: Chris Lamb <chris@chris-lamb.co.uk>
+Build-Depends: debhelper (>= 5), cdbs
+Standards-Version: 3.7.2
+XS-Vcs-Git: git://git.chris-lamb.co.uk/dns-filter
+XS-Vcs-Browse: http://git.chris-lamb.co.uk/?p=dns-filter
+
+Package: dns-filter
+Architecture: all
+Depends: python-twisted-names (>= 0.4.0)
+Description: Simple blacklisting DNS proxy
+ Dns-filter is a simple DNS proxy that returns NXDOMAIN if the master
+ offers an IP from a specified blacklist.
+ .
+ This is useful for broken ISPs that have an obnoxious and RFC violating
+ "The page you were looking for cannot be found" website for all
+ unregistered domains, and you don't want to install and configure Bind
+ or djbdns.

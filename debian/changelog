@@ -1,0 +1,5 @@
+dns-filter (0.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn).
+
+ -- Chris Lamb <chris@chris-lamb.co.uk>  Mon, 06 Aug 2007 16:11:32 +0100

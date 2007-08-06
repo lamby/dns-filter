@@ -1,0 +1,2 @@
+dns-filter.py usr/sbin/
+dns-filter.conf etc/
