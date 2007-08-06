@@ -45,7 +45,7 @@ case "$1" in
 		--exec $DAEMON -- -s
 	echo "$NAME."
 	;;
-  restart|force-reload)
+  restart|force-reload|reload)
 	echo -n "Restarting $DESC: "
 	start-stop-daemon --stop --oknodo --pidfile $PID \
 	    --exec $DAEMON -- -s
@@ -55,7 +55,7 @@ case "$1" in
 	;;
   *)
 	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|stop|restart|force-reload}" >&2
+	echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
 	exit 1
 	;;
 esac
