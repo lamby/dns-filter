@@ -35,22 +35,19 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# DNS server to get results from
+master = '192.168.0.1'
+
+# Invalid 'A' record IP addresses. The program will return "no such
+# domain" if one of these addresses is offered.
+invalid = ('195.238.237.142', '195.238.237.143')
+
+from twisted.application import service, internet
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
 from twisted.names import client, server, dns, error
 from twisted.python import failure
 import sys
-
-def main(master, invalid):
-    # Configure our custom resolver
-    resolver = MyResolver(servers=[(master, 53)])
-    resolver.invalid = invalid
-
-    # Start DNS server
-    factory = server.DNSServerFactory(clients=[resolver])
-    reactor.listenUDP(53, dns.DNSDatagramProtocol(factory))
-    reactor.listenTCP(53, factory)
-    return reactor.run()
 
 class MyResolver(client.Resolver):
     def filterAnswers(self, message):
@@ -67,13 +64,13 @@ class MyResolver(client.Resolver):
 
         return (message.answers, message.authority, message.additional)
 
-if __name__ == "__main__":
+# Configure our custom resolver
+resolver = MyResolver(servers=[(master, 53)])
+resolver.invalid = invalid
 
-    # DNS server to get results from
-    master = '192.168.0.1'
+factory = server.DNSServerFactory(clients=[resolver])
+protocol = dns.DNSDatagramProtocol(factory)
 
-    # Invalid 'A' record IP addresses. The program will return "no such
-    # domain" if one of these addresses is offered.
-    invalid = ('195.238.237.142', '195.238.237.143')
-
-    sys.exit(main(master, invalid))
+dnsFilterService = internet.UDPServer(53, protocol)
+application = service.Application("DNS filter")
+dnsFilterService.setServiceParent(application)
