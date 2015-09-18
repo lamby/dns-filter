@@ -35,40 +35,46 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from twisted.application import service, internet
-from twisted.internet.protocol import Factory, Protocol
-from twisted.internet import reactor
+import sys
+import ConfigParser
+
 from twisted.names import client, server, dns, error
 from twisted.python import failure
-import ConfigParser
-import sys
+from twisted.internet import reactor
+from twisted.application import service, internet
+from twisted.internet.protocol import Factory, Protocol
 
 try:
     config = ConfigParser.ConfigParser()
     config.read(('dns-filter.conf', '/etc/dns-filter.conf'))
     master = config.get('dns-filter', 'master')
-    invalid = [x.strip() for x in config.get('dns-filter', 'invalid').split(",")]
+    invalid = [
+        x.strip() for x in config.get('dns-filter', 'invalid').split(',')
+    ]
 except ConfigParser.NoSectionError:
     print "Configuration error"
     sys.exit(-1)
 
 class MyResolver(client.Resolver):
-    def filterAnswers(self, message):
-        if message.trunc:
-            return self.queryTCP(message.queries).addCallback(self.filterAnswers)
-        if message.rCode != dns.OK:
-            return failure.Failure(self._errormap.get(message.rCode, error.DNSUnknownError)(message))
+    def filterAnswers(self, x):
+        if x.trunc:
+            return self.queryTCP(x.queries).addCallback(self.filterAnswers)
+
+        if x.rCode != dns.OK:
+            f = self._errormap.get(x.rCode, error.DNSUnknownError)(x)
+            return failure.Failure(f)
 
         # We're only interested in 'A' records
-        for x in message.answers:
-            if not isinstance(x.payload, dns.Record_A):
+        for y in x.answers:
+            if not isinstance(y.payload, dns.Record_A):
                 continue
 
             # Report failure if we encounter one of the invalid
-            if a.payload.dottedQuad() in self.invalid:
-                return failure.Failure(self._errormap.get(message.rCode, error.DomainError)(message))
+            if y.payload.dottedQuad() in self.invalid:
+                f = self._errormap.get(x.rCode, error.DomainError)(x)
+                return failure.Failure(f)
 
-        return (message.answers, message.authority, message.additional)
+        return (x.answers, x.authority, x.additional)
 
 # Configure our custom resolver
 resolver = MyResolver(servers=[(master, 53)])
