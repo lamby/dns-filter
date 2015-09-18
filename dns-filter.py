@@ -60,7 +60,10 @@ class MyResolver(client.Resolver):
             return failure.Failure(self._errormap.get(message.rCode, error.DNSUnknownError)(message))
 
         # We're only interested in 'A' records
-        for a in filter(lambda x: isinstance(x.payload, dns.Record_A), message.answers):
+        for x in message.answers:
+            if not isinstance(x.payload, dns.Record_A):
+                continue
+
             # Report failure if we encounter one of the invalid
             if a.payload.dottedQuad() in self.invalid:
                 return failure.Failure(self._errormap.get(message.rCode, error.DomainError)(message))
