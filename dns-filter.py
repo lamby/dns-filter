@@ -40,9 +40,7 @@ import ConfigParser
 
 from twisted.names import client, server, dns, error
 from twisted.python import failure
-from twisted.internet import reactor
 from twisted.application import service, internet
-from twisted.internet.protocol import Factory, Protocol
 
 try:
     config = ConfigParser.ConfigParser()
@@ -57,6 +55,7 @@ try:
 except ConfigParser.NoSectionError:
     print "Configuration error"
     sys.exit(-1)
+
 
 class MyResolver(client.Resolver):
     def filterAnswers(self, x):
