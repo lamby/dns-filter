@@ -40,20 +40,22 @@ import ConfigParser
 
 from twisted.names import client, server, dns, error
 from twisted.python import failure
-from twisted.internet import reactor
 from twisted.application import service, internet
-from twisted.internet.protocol import Factory, Protocol
 
 try:
     config = ConfigParser.ConfigParser()
     config.read(('dns-filter.conf', '/etc/dns-filter.conf'))
-    master = config.get('dns-filter', 'master')
+    upstream_host = config.get('dns-filter', 'upstream_host')
+    upstream_port = int(config.get('dns-filter', 'upstream_port'))
+    listen_host = config.get('dns-filter', 'listen_host')
+    listen_port = int(config.get('dns-filter', 'listen_port'))
     invalid = [
         x.strip() for x in config.get('dns-filter', 'invalid').split(',')
     ]
 except ConfigParser.NoSectionError:
     print "Configuration error"
     sys.exit(-1)
+
 
 class MyResolver(client.Resolver):
     def filterAnswers(self, x):
@@ -77,12 +79,16 @@ class MyResolver(client.Resolver):
         return (x.answers, x.authority, x.additional)
 
 # Configure our custom resolver
-resolver = MyResolver(servers=[(master, 53)])
+resolver = MyResolver(servers=[(upstream_host, upstream_port)])
 resolver.invalid = invalid
 
 factory = server.DNSServerFactory(clients=[resolver])
 protocol = dns.DNSDatagramProtocol(factory)
 
-dnsFilterService = internet.UDPServer(53, protocol)
+dnsFilterService = internet.UDPServer(
+    listen_port,
+    protocol,
+    listen_host,
+)
 application = service.Application("DNS filter")
 dnsFilterService.setServiceParent(application)
