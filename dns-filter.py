@@ -18,6 +18,8 @@
      [3] http://en.wikipedia.org/wiki/Wildcard_DNS_record
      [4] http://en.wikipedia.org/wiki/Site_Finder
 
+  Additionally, this program can also strip unwanted A records from the
+  responses returned by upstream.
 
    Copyright (C) 2007  Chris Lamb <chris@chris-lamb.co.uk>
 
@@ -49,6 +51,9 @@ try:
     upstream_port = int(config.get('dns-filter', 'upstream_port'))
     listen_host = config.get('dns-filter', 'listen_host')
     listen_port = int(config.get('dns-filter', 'listen_port'))
+    stripped = [
+        x.strip() for x in config.get('dns-filter', 'stripped').split(',')
+    ]
     invalid = [
         x.strip() for x in config.get('dns-filter', 'invalid').split(',')
     ]
@@ -71,6 +76,11 @@ class MyResolver(client.Resolver):
             if not isinstance(y.payload, dns.Record_A):
                 continue
 
+            # Strip unwanted IPs
+            if y.payload.dottedQuad() in self.stripped:
+                x.answers.remove(y)
+                continue
+
             # Report failure if we encounter one of the invalid
             if y.payload.dottedQuad() in self.invalid:
                 f = self._errormap.get(x.rCode, error.DomainError)(x)
@@ -81,6 +91,7 @@ class MyResolver(client.Resolver):
 # Configure our custom resolver
 resolver = MyResolver(servers=[(upstream_host, upstream_port)])
 resolver.invalid = invalid
+resolver.stripped = stripped
 
 factory = server.DNSServerFactory(clients=[resolver])
 protocol = dns.DNSDatagramProtocol(factory)
