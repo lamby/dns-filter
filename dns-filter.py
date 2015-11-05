@@ -85,8 +85,10 @@ class MyResolver(client.Resolver):
         return (x.answers, x.authority, x.additional)
 
 # Configure our custom resolver
-resolver = MyResolver(servers=[(config['server']['upstream']['host'],
-                                config['server']['upstream']['port'])])
+resolver = MyResolver(servers=[(
+    config['server']['upstream']['host'],
+    config['server']['upstream']['port'],
+)])
 resolver.invalid = config['rules']['invalid']
 resolver.stripped = config['rules']['stripped']
 
