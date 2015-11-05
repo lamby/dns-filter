@@ -4,7 +4,7 @@ setup(
     name='dns-filter',
 
     url='https://chris-lamb.co.uk/projects/dns-filter',
-    version='0.0.1',
+    version='1.0.0',
     description="A simple DNS proxy that returns NXDOMAIN if the master "
         "offers an IP from a specified blacklist.",
 
