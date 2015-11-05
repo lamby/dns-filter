@@ -37,29 +37,25 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import sys
-import ConfigParser
+import yaml
 
 from twisted.names import client, server, dns, error
 from twisted.python import failure
 from twisted.application import service, internet
 
+config_file = os.environ.get("DNS_FILTER_CONF", "/etc/dns-filter.yml")
+
 try:
-    config = ConfigParser.ConfigParser()
-    config.read(('dns-filter.conf', '/etc/dns-filter.conf'))
-    upstream_host = config.get('dns-filter', 'upstream_host')
-    upstream_port = int(config.get('dns-filter', 'upstream_port'))
-    listen_host = config.get('dns-filter', 'listen_host')
-    listen_port = int(config.get('dns-filter', 'listen_port'))
-    stripped = [
-        x.strip() for x in config.get('dns-filter', 'stripped').split(',')
-    ]
-    invalid = [
-        x.strip() for x in config.get('dns-filter', 'invalid').split(',')
-    ]
-except ConfigParser.NoSectionError:
-    print "Configuration error"
-    sys.exit(-1)
+    with open(config_file, 'r') as f:
+        config = yaml.load(f)
+except IOError:
+    print "Config file not found: {config_file}".format(config_file=config_file)
+    sys.exit(2)
+except yaml.parser.ParserError:
+    print "Failed to parse config file."
+    sys.exit(2)
 
 
 class MyResolver(client.Resolver):
@@ -89,17 +85,18 @@ class MyResolver(client.Resolver):
         return (x.answers, x.authority, x.additional)
 
 # Configure our custom resolver
-resolver = MyResolver(servers=[(upstream_host, upstream_port)])
-resolver.invalid = invalid
-resolver.stripped = stripped
+resolver = MyResolver(servers=[(config['server']['upstream']['host'],
+                                config['server']['upstream']['port'])])
+resolver.invalid = config['rules']['invalid']
+resolver.stripped = config['rules']['stripped']
 
 factory = server.DNSServerFactory(clients=[resolver])
 protocol = dns.DNSDatagramProtocol(factory)
 
 dnsFilterService = internet.UDPServer(
-    listen_port,
+    config['server']['listen']['port'],
     protocol,
-    listen_host,
+    config['server']['listen']['host'],
 )
 application = service.Application("DNS filter")
 dnsFilterService.setServiceParent(application)

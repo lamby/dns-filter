@@ -9,7 +9,7 @@ XS-Vcs-Browse: http://git.chris-lamb.co.uk/?p=dns-filter
 
 Package: dns-filter
 Architecture: all
-Depends: python-twisted-names (>= 0.4.0)
+Depends: python-twisted-names (>= 0.4.0), python-yaml
 Description: Simple blacklisting DNS proxy
  Dns-filter is a simple DNS proxy that returns NXDOMAIN if the master
  offers an IP from a specified blacklist.
