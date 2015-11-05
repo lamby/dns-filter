@@ -45,7 +45,7 @@ from twisted.names import client, server, dns, error
 from twisted.python import failure
 from twisted.application import service, internet
 
-config_file = os.environ.get("DNS_FILTER_CONF", "/etc/dns-filter.yml")
+config_file = os.environ.get('DNS_FILTER_CONF', '/etc/dns-filter.yml')
 
 try:
     with open(config_file, 'r') as f:
