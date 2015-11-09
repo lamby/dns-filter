@@ -1,2 +1,2 @@
 dns-filter.py usr/sbin/
-dns-filter.conf etc/
+dns-filter.yml etc/
